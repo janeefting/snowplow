@@ -126,8 +126,12 @@ case class CampaignAttributionEnrichment(
    * @param sourceMap Map of key-value pairs in URI querystring
    * @return Option boxing the value of the campaign parameter
    */
-  private def getFirstParameter(parameterList: List[String], sourceMap: SourceMap): Option[String] =
+  private def getFirstParameter(parameterList: List[String], sourceMap: SourceMap): Option[String] = 
     parameterList.find(sourceMap.contains(_)).map(sourceMap(_))
+  
+
+  def substringAfter(s:String,k:String) = { s.indexOf(k) match { case -1 => ""; case i => s.substring(i+k.length)  } }
+
 
   /**
    * Extract the marketing fields from a URL.
@@ -142,15 +146,19 @@ case class CampaignAttributionEnrichment(
    *         Validation
    */
   def extractMarketingFields(uri: URI, encoding: String): ValidationNel[String, MarketingCampaign] = {
-
+    // Fix to remove duplicated mkt tagging
+    // e.g.:  utm_content=utm_content=somestring
+    val string_uri = ((uri.toString().replaceAll("\\=(?:\\w*)=", "\\=")).replaceAll("%7C", "__")).replaceAll("%09", "")
+    val new_uri = new URI(string_uri) 
+    
     val parameters = try {
-      URLEncodedUtils.parse(uri, encoding)
+      URLEncodedUtils.parse(new_uri, encoding)
     } catch {
       case _ => return "Could not parse uri [%s]".format(uri).failNel[MarketingCampaign]
     }
 
     // Querystring map
-    val sourceMap: SourceMap = parameters.map(p => (p.getName -> p.getValue)).toList.toMap
+    val sourceMap: SourceMap = parameters.map(p => p.getName -> (p.getValue)).toList.toMap
 
     val decodeString: TransformFunc = CU.decodeString(encoding, _, _)
 
@@ -159,7 +167,6 @@ case class CampaignAttributionEnrichment(
     val term = getFirstParameter(mktTerm, sourceMap)
     val content = getFirstParameter(mktContent, sourceMap)
     val campaign = getFirstParameter(mktCampaign, sourceMap)
-
     MarketingCampaign(medium, source, term, content, campaign).success.toValidationNel
   }   
 

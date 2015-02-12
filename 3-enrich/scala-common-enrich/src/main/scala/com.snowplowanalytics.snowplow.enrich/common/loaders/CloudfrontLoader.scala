@@ -1,4 +1,4 @@
-/*
+  /*
  * Copyright (c) 2012-2014 Snowplow Analytics Ltd. All rights reserved.
  *
  * This program is licensed to you under the Apache License Version 2.0,
@@ -87,7 +87,7 @@ object CloudfrontLoader extends Loader[String] {
    *         CanonicalInput object, wrapped
    *         in a Scalaz ValidatioNel.
    */
-  def toCollectorPayload(line: String): ValidatedMaybeCollectorPayload = line match {
+  def toCollectorPayload(line: String): ValidatedMaybeCollectorPayload = line.replaceAll("%09", "") match {
     
     // 1. Header row
     case h if (h.startsWith("#Version:") || h.startsWith("#Fields:")) =>
@@ -192,8 +192,9 @@ object CloudfrontLoader extends Loader[String] {
    * @return the cleaned string
    */
   private[loaders] def toCleanUri(uri: String): String = 
+    // (StringUtils.removeEnd(uri, "%"))
     StringUtils.removeEnd(uri, "%")
-
+    
   /**
    * On 17th August 2013, Amazon made an
    * unannounced change to their CloudFront

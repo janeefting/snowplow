@@ -36,12 +36,16 @@ class CampaignAttributionEnrichmentSpec extends Specification with ValidationMat
   "extractMarketingFields should create a MarketingCampaign using the standard Google-style settings"       ! e2^
   "extractMarketingFields should create a MarketingCampaign using the standard Omniture settings"           ! e3^
   "extractMarketingFields should create a MarketingCampaign using the correct order of precedence"          ! e4^
+  "extractMarketingFields should create a MarketingCampaign when the Google-style settings are duplicated"  ! e5^
+  "extractMarketingFields should create a MarketingCampaign when there are pipes in the URI"                ! e6^
                                                                                                             end
 
   val google_uri = "http://www.example.com?utm_source=GoogleSearch&utm_medium=cpc&utm_term=native+american+tarot+deck&utm_content=39254295088&utm_campaign=uk-tarot--native-american"
   val omniture_uri = "http://www.example.com?cid=uk-tarot--native-american"
   val heterogeneous_uri = "http://www.example.com?utm_source=GoogleSearch&source=bad_source&utm_medium=cpc&legacy_term=bad_term&utm_term=native+american+tarot+deck&legacy_campaign=bad_campaign&cid=uk-tarot--native-american"
-
+  val google_duplicate_tag_uri = "http://www.example.com?utm_source=utm_source=GoogleSearch&utm_medium=utm_medium=cpc&utm_term=native+american+tarot+deck&utm_content=utm_content=39254295088&utm_campaign=uk-tarot--native-american"
+  val google_pipes_uri = "http://www.example.com?utm_source=GoogleSearch&utm_medium=cpc&utm_term=native+american+tarot+deck&utm_content=3925429%7C5088&utm_campaign=uk-tarot--native-american"
+  
   def e1 = {
     val config = CampaignAttributionEnrichment(
       List(),
@@ -88,6 +92,30 @@ class CampaignAttributionEnrichmentSpec extends Specification with ValidationMat
     )
 
     config.extractMarketingFields(new URI(heterogeneous_uri), "UTF-8") must beSuccessful(MarketingCampaign(Some("cpc"),Some("GoogleSearch"),Some("native american tarot deck"),None,Some("uk-tarot--native-american")))
+  }
+
+  def e5 = {
+    val config = CampaignAttributionEnrichment(
+      List("utm_medium"),
+      List("utm_source"),
+      List("utm_term"),
+      List("utm_content"),
+      List("utm_campaign")
+    )
+
+    config.extractMarketingFields(new URI(google_duplicate_tag_uri), "UTF-8") must beSuccessful(MarketingCampaign(Some("cpc"),Some("GoogleSearch"),Some("native american tarot deck"),Some("39254295088"),Some("uk-tarot--native-american")))
+  }
+
+  def e6 = {
+    val config = CampaignAttributionEnrichment(
+      List("utm_medium"),
+      List("utm_source"),
+      List("utm_term"),
+      List("utm_content"),
+      List("utm_campaign")
+    )
+
+    config.extractMarketingFields(new URI(google_pipes_uri), "UTF-8") must beSuccessful(MarketingCampaign(Some("cpc"),Some("GoogleSearch"),Some("native american tarot deck"),Some("3925429__5088"),Some("uk-tarot--native-american")))
   }
 
 }
