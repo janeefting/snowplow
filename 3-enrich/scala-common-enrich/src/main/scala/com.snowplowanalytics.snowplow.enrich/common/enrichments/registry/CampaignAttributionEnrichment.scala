@@ -148,7 +148,7 @@ case class CampaignAttributionEnrichment(
   def extractMarketingFields(uri: URI, encoding: String): ValidationNel[String, MarketingCampaign] = {
     // Fix to remove duplicated mkt tagging
     // e.g.:  utm_content=utm_content=somestring
-    val string_uri = ((uri.toString().replaceAll("\\=(?:\\w*)=", "\\=")).replaceAll("%7C", "__")).replaceAll("%09", "")
+    val string_uri = (uri.toString().replaceAll("\\=(?:\\w*)=", "\\=")).replaceAll("%09", "")
     val new_uri = new URI(string_uri) 
     
     val parameters = try {

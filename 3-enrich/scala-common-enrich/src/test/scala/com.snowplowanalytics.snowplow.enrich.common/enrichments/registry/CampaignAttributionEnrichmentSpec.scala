@@ -115,7 +115,7 @@ class CampaignAttributionEnrichmentSpec extends Specification with ValidationMat
       List("utm_campaign")
     )
 
-    config.extractMarketingFields(new URI(google_pipes_uri), "UTF-8") must beSuccessful(MarketingCampaign(Some("cpc"),Some("GoogleSearch"),Some("native american tarot deck"),Some("3925429__5088"),Some("uk-tarot--native-american")))
+    config.extractMarketingFields(new URI(google_pipes_uri), "UTF-8") must beSuccessful(MarketingCampaign(Some("cpc"),Some("GoogleSearch"),Some("native american tarot deck"),Some("3925429|5088"),Some("uk-tarot--native-american")))
   }
 
 }
