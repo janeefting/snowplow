@@ -322,12 +322,12 @@ object EnrichmentManager {
     event.page_title = CU.truncate(event.page_title, 2000)
     event.page_urlpath = CU.truncate(event.page_urlpath, 1000)
     event.page_urlquery = CU.truncate(event.page_urlquery, 3000)
-    event.page_urlfragment = CU.truncate(event.page_urlfragment, 255)
+    //event.page_urlfragment = CU.truncate(event.page_urlfragment, 255)
     event.refr_urlpath = CU.truncate(event.refr_urlpath, 1000)
     event.refr_urlquery = CU.truncate(event.refr_urlquery, 3000)
-    event.refr_urlfragment = CU.truncate(event.refr_urlfragment, 255)
+    //event.refr_urlfragment = CU.truncate(event.refr_urlfragment, 255)
     event.refr_term = CU.truncate(event.refr_term, 255)
-    event.se_label = CU.truncate(event.se_label, 255)
+    //event.se_label = CU.truncate(event.se_label, 255)
 
     // Collect our errors on Failure, or return our event on Success
     (useragent.toValidationNel    |@|
