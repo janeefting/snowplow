@@ -256,14 +256,25 @@ object ConversionUtils {
    */
   def stringToUri(uri: String, useNetaporter: Boolean = false): Validation[String, Option[URI]] =
     try {
-      val r = uri.replaceAll(" ", "%20") // Because so many raw URIs are bad, #346
+      var r = uri.replaceAll(" ", "%20") // Because so many raw URIs are bad, #346
       Some(URI.create(r)).success
     } catch {
       case npe: NullPointerException => None.success
       case iae: IllegalArgumentException => useNetaporter match {
         case false => {
           val netaporterUri = try {
-            Uri.parse(uri).success
+            var r = uri
+            //fix to remove the double hashtags from the qs
+            var hash_regex = """(#.*)#""".r
+            if (hash_regex.findFirstIn(r) != None) {
+              r = r.replaceAll(hash_regex.toString(), "#")
+            }
+            //fix to remove the % sign from the tags in the qs
+            var percent_regex = """(100)(\%)""".r
+            if (percent_regex.findFirstIn(r) != None) {
+              r = r.replaceAll(percent_regex.toString(), "$1")
+            }
+            Uri.parse(r).success
           } catch {
             case e => "Provided URI string [%s] could not be parsed by Netaporter: [%s]".format(uri, ExceptionUtils.getRootCause(iae).getMessage).fail
           }

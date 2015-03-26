@@ -45,6 +45,9 @@ class StringToUriSpec extends Specification with DataTables {
     "Space in qs"                         !! "http://www.example.com/?a=b c" ! Some(URI.create("http://www.example.com/?a=b%20c")).success |
     "Forward slash in qs"                 !! "http://www.example.com/?a=b/c" ! Some(URI.create("http://www.example.com/?a=b/c")).success |
     "Plus in qs"                          !! "http://www.example.com/?a=b+c" ! Some(URI.create("http://www.example.com/?a=b+c")).success |
+    "100Percent sign in qs"               !! "http://www.example.com/?a=c#100%" ! Some(URI.create("http://www.example.com/?a=c#100")).success |
+    "Single hasshtag in qs"               !! "http://www.example.com/?a=somea#sometag" ! Some(URI.create("http://www.example.com/?a=somea#sometag")).success |
+    "Multiple hasshtags in qs"            !! "http://www.example.com/?a=somea#HashTagOne#HashTagTwo" ! Some(URI.create("http://www.example.com/?a=somea#HashTagTwo")).success |
     "Salvageable URI with plus in qs"     !! "http://www.example.com/|/?a=b+c" ! Some(URI.create("http://www.example.com/%7C/?a=b%2Bc")).success |> {
 
       (_, uri, expected) => {    

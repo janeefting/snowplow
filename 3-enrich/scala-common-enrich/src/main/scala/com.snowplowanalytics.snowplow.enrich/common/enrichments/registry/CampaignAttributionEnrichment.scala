@@ -148,9 +148,31 @@ case class CampaignAttributionEnrichment(
   def extractMarketingFields(uri: URI, encoding: String): ValidationNel[String, MarketingCampaign] = {
     // Fix to remove duplicated mkt tagging
     // e.g.:  utm_content=utm_content=somestring
-    val string_uri = (uri.toString().replaceAll("\\=(?:\\w*)=", "\\=")).replaceAll("%09", "")
-    val new_uri = new URI(string_uri) 
+    var string_uri = (uri.toString().replaceAll("\\=(?:\\w*)=", "\\=")).replaceAll("%09", "")
     
+    // Fix to remove the ?redirect= from the URI
+    // e.g.: <main_uri>?redirect=<redirected_uri> 
+    //       <main_uri>?redirecturl=<redirected_uri>
+    var redirectRegex = """\?(redirect\W|redirecturl\W)(.*)(\?)""".r    
+      if (redirectRegex.findFirstIn(string_uri) != None) {
+        string_uri = string_uri.replaceAll(redirectRegex.toString(), "?")
+      }
+    
+    // Fix to remove the &=& parts of the query string
+    // e.g.:  https://www.eneco.nl/kies-uw-stroom-en-gas?situatie=schatting&=&utm_source=Gmail
+    var seperatorRegex = """(\&\=\&)""".r    
+      if (seperatorRegex.findFirstIn(string_uri) != None) {
+        string_uri = string_uri.replaceAll(seperatorRegex.toString(), "&")
+      }
+
+    // Fix to remove the URI in the utm_term field
+    // e.g.: utm_term=95_121262_3971827_http://search.genieo.com/?v=gim    
+    var embeddedLinkRegex = """(^http.*\?.*)(http\:.*)""".r    
+      if (embeddedLinkRegex.findFirstIn(string_uri) != None) {
+        string_uri = string_uri.replaceAll(embeddedLinkRegex.toString(), "$1")
+      }
+
+    var new_uri = new URI(string_uri)   
     val parameters = try {
       URLEncodedUtils.parse(new_uri, encoding)
     } catch {
@@ -169,5 +191,4 @@ case class CampaignAttributionEnrichment(
     val campaign = getFirstParameter(mktCampaign, sourceMap)
     MarketingCampaign(medium, source, term, content, campaign).success.toValidationNel
   }   
-
 }
