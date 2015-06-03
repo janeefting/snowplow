@@ -257,6 +257,14 @@ object ConversionUtils {
   def stringToUri(uri: String, useNetaporter: Boolean = false): Validation[String, Option[URI]] =
     try {
       var r = uri.replaceAll(" ", "%20") // Because so many raw URIs are bad, #346
+      r = r.replaceAll("<","") //fix to remove < from the tags in the qs
+      r = r.replaceAll(">","") //fix to remove > from the tags in the qs
+      r = r.replaceAll("^","") //fix to remove ^ from the tags in the qs
+      // //fix to remove the double questionmarks from the qs
+      // var question_regex = """(\?.*)\?""".r
+      // if (question_regex.findFirstIn(r) != None) {
+      //   r = r.replaceAll(question_regex.toString(), "?")
+      // }
       Some(URI.create(r)).success
     } catch {
       case npe: NullPointerException => None.success
@@ -269,11 +277,23 @@ object ConversionUtils {
             if (hash_regex.findFirstIn(r) != None) {
               r = r.replaceAll(hash_regex.toString(), "#")
             }
+            
             //fix to remove the % sign from the tags in the qs
             var percent_regex = """(100)(\%)""".r
             if (percent_regex.findFirstIn(r) != None) {
               r = r.replaceAll(percent_regex.toString(), "$1")
             }
+            //fix to remove { from the tags in the qs  
+            var opening_bracket_regex = """\{""".r
+            if (opening_bracket_regex.findFirstIn(r) != None) {
+              r = r.replaceAll("\\{","") 
+            }
+            //fix to remove } from the tags in the qs
+            var closing_bracket_regex = """\}""".r
+            if (closing_bracket_regex.findFirstIn(r) != None) {
+              r = r.replaceAll("\\}","")
+            }
+            
             Uri.parse(r).success
           } catch {
             case e => "Provided URI string [%s] could not be parsed by Netaporter: [%s]".format(uri, ExceptionUtils.getRootCause(iae).getMessage).fail

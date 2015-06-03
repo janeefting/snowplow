@@ -48,7 +48,9 @@ class StringToUriSpec extends Specification with DataTables {
     "100Percent sign in qs"               !! "http://www.example.com/?a=c#100%" ! Some(URI.create("http://www.example.com/?a=c#100")).success |
     "Single hasshtag in qs"               !! "http://www.example.com/?a=somea#sometag" ! Some(URI.create("http://www.example.com/?a=somea#sometag")).success |
     "Multiple hasshtags in qs"            !! "http://www.example.com/?a=somea#HashTagOne#HashTagTwo" ! Some(URI.create("http://www.example.com/?a=somea#HashTagTwo")).success |
-    "Salvageable URI with plus in qs"     !! "http://www.example.com/|/?a=b+c" ! Some(URI.create("http://www.example.com/%7C/?a=b%2Bc")).success |> {
+    // "Multiple questionmarks in the qs"    !! "http://www.example.com/?a=somea?HashTagOne=HashTagTwo" ! Some(URI.create("http://www.example.com/?HashTagOne=HashTagTwo")).success |
+    "Salvageable URI with plus in qs"     !! "http://www.example.com/|/?a=b+c" ! Some(URI.create("http://www.example.com/%7C/?a=b%2Bc")).success |
+    "Salvageable URI with braces in qs"   !! "http://www.example.com/?cid={123}" ! Some(URI.create("http://www.example.com/?cid=123")).success |> {
 
       (_, uri, expected) => {    
         ConversionUtils.stringToUri(uri)  must_== expected

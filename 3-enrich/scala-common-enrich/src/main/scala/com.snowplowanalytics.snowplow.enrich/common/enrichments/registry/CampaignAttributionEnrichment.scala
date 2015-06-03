@@ -167,7 +167,7 @@ case class CampaignAttributionEnrichment(
 
     // Fix to remove the URI in the utm_term field
     // e.g.: utm_term=95_121262_3971827_http://search.genieo.com/?v=gim    
-    var embeddedLinkRegex = """(^http.*\?.*)(http\:.*)""".r    
+    var embeddedLinkRegex = """(^(http|https).*\?.*)((http|https)\:.*)""".r    
       if (embeddedLinkRegex.findFirstIn(string_uri) != None) {
         string_uri = string_uri.replaceAll(embeddedLinkRegex.toString(), "$1")
       }
@@ -190,5 +190,5 @@ case class CampaignAttributionEnrichment(
     val content = getFirstParameter(mktContent, sourceMap)
     val campaign = getFirstParameter(mktCampaign, sourceMap)
     MarketingCampaign(medium, source, term, content, campaign).success.toValidationNel
-  }   
+  }
 }
