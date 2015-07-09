@@ -73,7 +73,7 @@ object AnonOctets extends Enumeration {
   val One   = Value(1, "1")
   val Two   = Value(2, "2")
   val Three = Value(3, "3")
-  val All   = Value(4, "4")
+  val All   = Value(4, "4") // changed for ip hashing
 
   /**
    * Convert a Stringly-typed integer
@@ -107,9 +107,47 @@ case class AnonIpEnrichment(
   ) extends Enrichment {
 
   val version = new DefaultArtifactVersion("0.1.0")
+  
+  /**
+   * Hash the supplied IP address.
+   * 
+   * md5("94.15.223.151")
+   * => "ad76e669e0536f88cd09475c8110b787"
+   *
+   * @param ip The IP address to hash
+   * @return the hashed IP address
+  **/
+  import java.security.MessageDigest
+  import scala.collection.mutable.StringBuilder
+  import java.lang.String
+  def md5(ip_to_hash: String): String = {
+    // Create the MD5 message digest
+    var digest = MessageDigest.getInstance("MD5")
+    // hash the IP idnto a string 
+    var hash = digest.digest(ip_to_hash.getBytes("UTF-8"))
+    
+    // Convert the byte array to a hexadecimal string using 
+    // the string builder
+    var sb =  new StringBuilder(2*hash.length)
+    for (b <- hash) {
+      sb.append("%02x".format(b&0xff))
+    }
+    var out_hash = sb.toString()
+    // Finally return the hased IP address
+    return out_hash
+  }
 
   /**
    * Anonymize the supplied IP address.
+   *
+   * ----- Update ------
+   * @janeefting updated the method so that
+   * MD5 hashing is also avialable when complete
+   * or partial anonymization is not desired 
+   * Furthermore, consistent hashes supports 
+   * IP level analysis without potentially 
+   * compromising sensitive user data  
+   * ------ Update ------
    *
    * octets is the number of octets
    * in the IP address to anonymize, starting
@@ -119,7 +157,10 @@ case class AnonIpEnrichment(
    * => "94.15.223.x"
    *
    * anonymizeIp("94.15.223.151", Three)
-   * => "94.x.x.x"
+   * => "94.x.x.x"   
+   *
+   * anonymizeIp("94.15.223.151", All)
+   * => "ad76e669e0536f88cd09475c8110b787"
    *
    * TODO: potentially update this to return
    * a Validation error or a null if the IP
@@ -129,10 +170,13 @@ case class AnonIpEnrichment(
    * @return the anonymized IP address
    */
   import AnonOctets._
-  def anonymizeIp(ip: String): String =
-    Option(ip).map(_.split("\\.").zipWithIndex.map{
+  
+  def anonymizeIp(ip: String): String = {
+    if (octets.id == 4) md5(ip) 
+    else Option(ip).map(_.split("\\.").zipWithIndex.map{
       case (q, i) => {
         if (octets.id >= All.id - i) "x" else q
       }
     }.mkString(".")).orNull
+  }
 }
